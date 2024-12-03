@@ -6,14 +6,14 @@ import sys
 # Load the English NLP model from spaCy
 nlp = spacy.load("en_core_web_sm")
 
-def get_ngrams(tokens, n):
+def getNgrams(tokens, n):
     """
     Generate n-grams from a list of tokens and count their frequencies.
     """
     ngrams = zip(*[tokens[i:] for i in range(n)])
     return Counter(ngrams)
 
-def querying_transformation(query):
+def queryingTransformation(query):
     """
     Process the input query and return a JSON-like result with token frequencies,
     bigrams, trigrams, named entities, and parts of speech.
@@ -45,7 +45,9 @@ def querying_transformation(query):
 
     # Add each token to the result, repeated for its occurrences with respective positions
     for token, freq in sorted_tokens:
+        # Find all positions where this lemma occurs
         positions = [doc_token.idx for doc_token in doc if doc_token.lemma_ == token and not doc_token.is_punct and not doc_token.is_space and not doc_token.is_stop]
+        # Add the token multiple times with each position
         for pos in positions:
             result["tokens"].append({
                 "token": token,
@@ -55,7 +57,7 @@ def querying_transformation(query):
             })
 
     # Generate and sort bigrams
-    bigram_freq = get_ngrams(filtered_tokens, 2)
+    bigram_freq = getNgrams(filtered_tokens, 2)
     sorted_bigrams = sorted(
         bigram_freq.items(),
         key=lambda x: (-x[1], x[0])
@@ -66,7 +68,7 @@ def querying_transformation(query):
     ]
 
     # Generate and sort trigrams
-    trigram_freq = get_ngrams(filtered_tokens, 3)
+    trigram_freq = getNgrams(filtered_tokens, 3)
     sorted_trigrams = sorted(
         trigram_freq.items(),
         key=lambda x: (-x[1], x[0])
@@ -95,27 +97,34 @@ def querying_transformation(query):
 
     return result
 
-# Ensure the correct number of command-line arguments
-if len(sys.argv) != 2:
-    print("Please provide the input file as a command-line argument.")
-    sys.exit(1)
+def main():
+    """
+    Main function to handle command-line arguments and execute the query transformation.
+    """
+    # Ensure the correct number of command-line arguments
+    if len(sys.argv) != 2:
+        print("Please provide the input file as a command-line argument.")
+        sys.exit(1)
 
-# Read the input file
-input_file = sys.argv[1]
-try:
-    with open(input_file, "r") as file:
-        query = file.read().strip()
-except FileNotFoundError:
-    print(f"Error: The file '{input_file}' does not exist.")
-    sys.exit(1)
-except IOError:
-    print(f"Error: Unable to read the file '{input_file}'.")
-    sys.exit(1)
+    # Read the input file
+    input_file = sys.argv[1]
+    try:
+        with open(input_file, "r") as file:
+            query = file.read().strip()
+    except FileNotFoundError:
+        print(f"Error: The file '{input_file}' does not exist.")
+        sys.exit(1)
+    except IOError:
+        print(f"Error: Unable to read the file '{input_file}'.")
+        sys.exit(1)
 
-# Process the query and save the output to a JSON file
-output = querying_transformation(query)
-output_file = "output.json"
-with open(output_file, "w") as file:
-    json.dump(output, file, indent=4)
+    # Process the query and save the output to a JSON file
+    output = queryingTransformation(query)
+    output_file = "output.json"
+    with open(output_file, "w") as file:
+        json.dump(output, file, indent=4)
 
-print(f"JSON output has been saved to {output_file}")
+    print(f"JSON output has been saved to {output_file}")
+
+if __name__ == "__main__":
+    main()
