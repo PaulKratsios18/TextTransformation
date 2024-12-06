@@ -2,18 +2,29 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from typing import Dict, Any
 import logging
+import json
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Simulated queues and storage for demonstration purposes
 new_document_queue = []
-transformed_documents = {}
-queries_transformed = {}
+
+# Load queue from file if it exists
+if os.path.exists('queue.json'):
+    with open('queue.json', 'r') as f:
+        new_document_queue = json.load(f)
+
+def save_queue():
+    """Save the current queue to a file."""
+    with open('queue.json', 'w') as f:
+        json.dump(new_document_queue, f)
+    logger.info(f"Queue saved with {len(new_document_queue)} documents.")
 
 # Endpoint: newDocument()
 @app.route('/newDocument', methods=['POST'])
@@ -26,9 +37,12 @@ def new_document():
     data = request.json
     document_id = data.get("document_id")
     if not document_id:
+        logger.warning("Received request without document_id")
         return jsonify({"error": "document_id is required"}), 400
     
     new_document_queue.append({"id": document_id})
+    logger.info(f"Added document ID {document_id} to processing queue")
+    save_queue()  # Save the queue after adding a new document
     return jsonify({"message": f"Document ID {document_id} added to processing queue"}), 200
 
 # # Endpoint: addTransformedDocument()
