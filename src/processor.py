@@ -57,17 +57,17 @@ class TextTransformer:
                 entities[ent.label_] = []
             entities[ent.label_].append(ent.text)
         return entities 
-
+    
     # spaCy's pipeline components
-    nlp = spacy.load("en_core_web_sm")
-    print(nlp.pipe_names)  # ['tok2vec', 'tagger', 'parser', 'ner', ...]
+    # nlp = spacy.load("en_core_web_sm")
+    # print(nlp.pipe_names)  # ['tok2vec', 'tagger', 'parser', 'ner', ...]
 
-    # spaCy's built-in features
-    doc = nlp("OpenAI costs $20 billion")
-    for ent in doc.ents:
-        print(ent.text, ent.label_)  # Named Entity Recognition
+    # # spaCy's built-in features
+    # doc = nlp("OpenAI costs $20 billion")
+    # for ent in doc.ents:
+    #     print(ent.text, ent.label_)  # Named Entity Recognition
 
-    for token in doc:
-        print(token.like_num)  # Number detection
-        print(token.like_email)  # Email detection
-        print(token.like_url)  # URL detection
+    # for token in doc:
+    #     print(token.like_num)  # Number detection
+    #     print(token.like_email)  # Email detection
+    #     print(token.like_url)  # URL detection

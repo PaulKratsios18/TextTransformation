@@ -37,7 +37,7 @@ class TestTextTransformer(unittest.TestCase):
         self.assertEqual(result['tokens'], ['Hello', 'World'])
 
     def test_book_1984_processing(self):
-        with open('test_documents/book-1984.txt', 'r') as file:
+        with open('book-1984.txt', 'r') as file:
             content = file.read()
         
         test_doc = {
@@ -63,6 +63,6 @@ nlp = spacy.load("en_core_web_sm")
 # Test document
 doc = nlp("OpenAI is located in San Francisco.")
 
-# Print recognized entities
-for ent in doc.ents:
-    print(ent.text, ent.label_)
+# # Print recognized entities
+# for ent in doc.ents:
+#     print(ent.text, ent.label_)
