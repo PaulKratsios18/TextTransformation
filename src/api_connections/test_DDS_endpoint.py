@@ -1,5 +1,4 @@
 from pymongo import MongoClient, UpdateOne
-
 # MongoDB URI
 MONGO_URI = "mongodb://128.113.126.79:27017"
 
