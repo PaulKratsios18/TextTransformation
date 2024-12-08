@@ -13,6 +13,7 @@ class TextTransformer:
         self.nlp = spacy.load(model_name)
         
     def process_document(self, raw_document: Dict[str, Any]) -> Dict[str, Any]:
+        #TODO: Implement this method
         """Process a raw document and return structured data."""
         doc_id = raw_document['doc_id']
         content = raw_document['content']

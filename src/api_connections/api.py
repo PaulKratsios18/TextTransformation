@@ -6,7 +6,7 @@ from flask_cors import CORS
 from typing import Dict, Any
 
 from ..processor import TextTransformer
-from ..queue_processing import add_document_to_db
+from ..queue_processing import QueueProcessor
 
 # Initialize Flask app and enable CORS
 app = Flask(__name__)
@@ -14,6 +14,8 @@ CORS(app)
 
 # Initialize TextTransformer
 text_transformer = TextTransformer()
+queue_processor = QueueProcessor()
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,7 +35,7 @@ def new_document():
         logger.warning("Received request without document_id")
         return jsonify({"error": "document_id is required"}), 400
 
-    if add_document_to_db(document_id):
+    if queue_processor.add_document_to_db(document_id):
         logger.info(f"Added document ID {document_id} to the queue")
         return jsonify({"message": f"Document ID {document_id} added to the queue"}), 200
     else:
