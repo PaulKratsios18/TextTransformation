@@ -6,7 +6,6 @@ import spacy
 from bs4 import BeautifulSoup
 from langdetect import detect
 from typing import Dict, List, Any
-from .utils import remove_stopwords, extract_ngrams
 
 class TextTransformer:
     def __init__(self, model_name: str = "en_core_web_sm"):
@@ -37,8 +36,8 @@ class TextTransformer:
             'pos_tags': [(token.text, token.pos_) for token in doc],
             'entities': self._extract_entities(doc),
             'sentences': [str(sent) for sent in doc.sents],
-            'ngrams': extract_ngrams(doc),
-            'non_stop_words': remove_stopwords(doc),
+            #'ngrams': extract_ngrams(doc),
+            #'non_stop_words': remove_stopwords(doc),
             'metadata': raw_document.get('metadata', {})
         }
         
