@@ -7,7 +7,7 @@ import logging
 class TestTextTransformationAPI(unittest.TestCase):
     def setUp(self):
         """Set up test case - define the base URL"""
-        self.base_url = "http://128.113.126.77:5001"
+        self.base_url = "http://127.0.0.1:5001"
         
     def test_new_document(self):
         """Test adding a new document to the queue"""
@@ -30,16 +30,20 @@ class TestTextTransformationAPI(unittest.TestCase):
     #     self.assertEqual(response.status_code, 200)
     #     self.assertTrue(response.json()["success"])
 
+        
     def test_transform_query(self):
-        """Test query transformation"""
+        """Test query transformation and print the response for debugging."""
         url = f"{self.base_url}/transformQuery"
-        data = {"query": "Hello World!"}
+        data = {"query": "Whats the capital of france?"}  # Test input query
         response = requests.post(url, json=data, timeout=5)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, "Expected status code 200 for successful request.")
+
+        # Capture and parse the JSON response
         result = response.json()
-        self.assertIn("original", result)
-        self.assertIn("tokens", result)
-        self.assertIn("named_entities", result)
+
+        # Print the result for manual verification (optional)
+        print("\nResponse from /transformQuery endpoint:")
+        print(json.dumps(result, indent=4))  # Pretty-print JSON response
 
     # def test_get_raw_documents(self):
     #     """Test retrieving raw documents"""

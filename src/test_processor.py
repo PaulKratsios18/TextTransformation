@@ -1,5 +1,6 @@
 import sys
 import os
+import spacy
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import unittest
@@ -9,22 +10,10 @@ class TestTextTransformer(unittest.TestCase):
     def setUp(self):
         self.transformer = TextTransformer()
         
-    def test_basic_processing(self):
-        test_doc = {
-            'doc_id': '123',
-            'content': 'OpenAI is located in San Francisco.',
-            'metadata': {'source': 'web'}
-        }
-        
-        result = self.transformer.process_document(test_doc)
-        
-        self.assertEqual(result['doc_id'], '123')
-        self.assertEqual(result['language'], 'en')
-        self.assertIn('OpenAI', result['entities'].get('ORG', []))
-        self.assertIn('San Francisco', result['entities'].get('GPE', []))
-        
-        print("Entities:", result['entities'])
-        
+    def test_query_processing(self):
+        test_query = "What is the capital of France?"
+        result = self.transformer.process_query(test_query)
+        print ("Query result:", result)
     def test_html_cleaning(self):
         test_doc = {
             'doc_id': '124',

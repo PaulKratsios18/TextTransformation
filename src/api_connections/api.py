@@ -4,10 +4,10 @@ from typing import Dict, Any
 import logging
 import json
 import os
-
 app = Flask(__name__)
 CORS(app)
-
+from ..processor import TextTransformer
+text_transformer = TextTransformer()
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -76,23 +76,18 @@ def new_document():
 def transform_query():
     """
     Transform search query for the Querying team.
-    Input: Query string
-    Output: Transformed query in JSON format
+    Input: JSON with "query".
+    Output: Transformed query in JSON format.
     """
     try:
-        query = request.json.get('query')
+        data = request.json
+        query = data.get('query')
         if not query:
             return jsonify({"error": "Missing query"}), 400
-
-        # TODO: Implement actual query transformation logic
-        transformed_query = {
-            "original": query,
-            "tokens": query.split(),
-            "named_entities": []
-        }
-        
-        logger.info(f"Transformed query: {query}")
-        return jsonify(transformed_query)
+        transformed_query = text_transformer.process_query(query)
+        logger.info(f"Query: {query}")
+        logger.info(f"Transformed query: {transformed_query}")
+        return jsonify(transformed_query), 200
 
     except Exception as e:
         logger.error(f"Error transforming query: {str(e)}")
