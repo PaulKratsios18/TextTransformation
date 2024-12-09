@@ -6,6 +6,9 @@ import spacy
 from bs4 import BeautifulSoup
 from langdetect import detect
 from typing import Dict, List, Any
+from pdfreader import SimplePDFViewer, PageDoesNotExist
+from pdf2image import convert_from_path
+from pytesseract import image_to_string
 
 class TextTransformer:
     def __init__(self, model_name: str = "en_core_web_sm"):
@@ -21,6 +24,8 @@ class TextTransformer:
         # Clean HTML if present
         if raw_document.get('type') == 'html':
             content = self._clean_html(content)
+        elif raw_document.get('type') == 'pdf':
+            content = self._clean_pdf(content)
             
         # Detect language
         lang = detect(content)
@@ -131,6 +136,34 @@ class TextTransformer:
         """Remove HTML tags and extract clean text."""
         soup = BeautifulSoup(html_content, 'html.parser')
         return soup.get_text(separator=' ', strip=True)
+    def _clean_pdf(self, file_path: str) -> str:
+        def extract_with_pdfreader():
+            fd = open(file_path, "rb")
+            viewer = SimplePDFViewer(fd)
+            text = ""
+            try:
+                while True:
+                    viewer.render()
+                    text += "".join(viewer.canvas.strings) 
+                    viewer.next()
+            except PageDoesNotExist:
+                pass
+            return text.strip()
+
+        def extract_with_ocr():
+            # Extract text using OCR
+            images = convert_from_path(file_path)
+            text = ""
+            for img in images:
+                text += image_to_string(img)
+            return text.strip()
+
+        text = extract_with_pdfreader()
+        
+        if text:
+            return text
+        else:
+            return extract_with_ocr()
     
     def _extract_ngrams(self,tokens, n) -> Counter:
         """
