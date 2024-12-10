@@ -13,7 +13,6 @@ class TestQueueDatabase(unittest.TestCase):
         if os.path.exists(self.DB_FILE):
             os.remove(self.DB_FILE)
         self.queue_processor = QueueProcessor(db_file=self.DB_FILE)
-        self.queue_processor.init_db()
     
     def tearDown(self):
         if os.path.exists(self.DB_FILE):
@@ -54,6 +53,20 @@ class TestQueueDatabase(unittest.TestCase):
         self.queue_processor.add_document_to_db("doc_123")  # First insertion
         result = self.queue_processor.add_document_to_db("doc_123")  # Duplicate insertion
         self.assertFalse(result)
+    def test_add_several_documents(self):
+        """
+        Test adding multiple documents to the database.
+        """
+        docnum = 1
+        for i in range(0,10000):
+            self.queue_processor.add_document_to_db(f"doc_{docnum}")
+            docnum += 1
+        conn = sqlite3.connect(self.DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(document_id) FROM documents")
+        count = cursor.fetchone()
+        conn.close()
+        self.assertEqual(count[0], 10000)
 
 if __name__ == "__main__":
     unittest.main()
