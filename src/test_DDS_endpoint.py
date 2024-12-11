@@ -1,4 +1,5 @@
 from pymongo import MongoClient, UpdateOne
+from processor import TextTransformer  # Import the TextTransformer class
 
 # MongoDB URI
 MONGO_URI = "mongodb://128.113.126.79:27017"
@@ -43,6 +44,7 @@ def add_transformed_document(docID, transformed_content, url):
         
         if existing_doc:
             # Update the existing document
+            print(f"Updating transformed document with ID: {docID}")
             result = transformed_collection.update_one(
                 {"doc_id": docID},
                 {"$set": transformed_document}
@@ -57,16 +59,22 @@ def add_transformed_document(docID, transformed_content, url):
 
 # Example usage
 if __name__ == "__main__":
+    # Initialize the transformer
+    transformer = TextTransformer()
+
     # Example document ID
-    doc_id = "67531526beaff03e7b3f6aaf"
+    doc_id = "wl94r5rsun319rxu5zcrl41s"
 
     # Get raw document
     raw_document = get_raw_documents(doc_id)
     
     # If a raw document is found, process it and add the transformed document
     if raw_document:
+        # Process the document
+        processed_result = transformer.process_document(raw_document)
+        print("Processed result: ", processed_result)
         # Extract the URL from the raw document
         url = raw_document.get('url', 'http://default-url.com')  # Use a default if 'url' is not present
-        # Use the 'text' key instead of 'content'
-        transformed_content = raw_document['text'].upper()  # Simple transformation
-        add_transformed_document(doc_id, transformed_content, url)
+        
+        # Add the processed document to the transformed collection
+        add_transformed_document(doc_id, processed_result, url)
