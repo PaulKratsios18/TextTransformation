@@ -1,0 +1,101 @@
+{
+    "url": "https://www.google.com",
+    "doc_id": "doc123",
+    "total_length": 6,
+    "tokens": [
+        {
+            "frequency": 1,
+            "lemma": "capital",
+            "position": 10,
+            "token": "capital"
+        },
+        {
+            "frequency": 1,
+            "lemma": "france",
+            "position": 21,
+            "token": "france"
+        },
+        {
+            "frequency": 1,
+            "lemma": "s",
+            "position": 4,
+            "token": "s"
+        }
+    ],
+    "bigrams": [
+        {
+            "bigram": [
+                "capital",
+                "france"
+            ],
+            "frequency": 1
+        },
+        {
+            "bigram": [
+                "s",
+                "capital"
+            ],
+            "frequency": 1
+        }
+    ],
+    "trigrams": [
+        {
+            "frequency": 1,
+            "trigram": [
+                "s",
+                "capital",
+                "france"
+            ]
+        }
+    ],
+    "named_entities": [
+        {
+            "entity": "france",
+            "position": [
+                21,
+                27
+            ],
+            "type": "GPE"
+        },
+        {
+            "entity": "france",
+            "position": [
+                21,
+                27
+            ],
+            "type": "GPE"
+        }
+    ],
+    "parts_of_speech": [
+        {
+            "pos_tag": "VERB",
+            "position": 4,
+            "token": "s"
+        },
+        {
+            "pos_tag": "NOUN",
+            "position": 10,
+            "token": "capital"
+        },
+        {
+            "pos_tag": "PROPN",
+            "position": 21,
+            "token": "france"
+        },
+        {
+            "pos_tag": "VERB",
+            "position": 4,
+            "token": "s"
+        },
+        {
+            "pos_tag": "NOUN",
+            "position": 10,
+            "token": "capital"
+        },
+        {
+            "pos_tag": "PROPN",
+            "position": 21,
+            "token": "france"
+        }
+    ]
+}

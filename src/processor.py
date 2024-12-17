@@ -9,6 +9,12 @@ from typing import Dict, List, Any
 from pdfreader import SimplePDFViewer, PageDoesNotExist
 from pdf2image import convert_from_path
 from pytesseract import image_to_string
+import logging
+from .utils import remove_stopwords, extract_ngrams
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class TextTransformer:
     def __init__(self, model_name: str = "en_core_web_sm"):
@@ -18,36 +24,103 @@ class TextTransformer:
     def process_document(self, raw_document: Dict[str, Any]) -> Dict[str, Any]:
         #TODO: Implement this method
         """Process a raw document and return structured data."""
-        doc_id = raw_document['doc_id']
-        content = raw_document['content']
+        doc_id = raw_document['_id']
+        content = raw_document['text']
         
         # Clean HTML if present
         if raw_document.get('type') == 'html':
             content = self._clean_html(content)
-        elif raw_document.get('type') == 'pdf':
-            content = self._clean_pdf(content)
-            
-        # Detect language
-        lang = detect(content)
+        
+        # Check if content is sufficient for language detection
+        if len(content.strip()) < 20:  # Adjust the threshold as needed
+            logger.warning(f"Content too short for language detection: {content}")
+            lang = "unknown"
+        else:
+            # Detect language
+            try:
+                lang = detect(content)
+            except LangDetectException:
+                logger.error(f"Language detection failed for document ID: {doc_id}")
+                lang = "unknown"
         
         # Process with spaCy
         doc = self.nlp(content)
         
         # Extract structured data
-        processed_data = {
-            'doc_id': doc_id,
-            'language': lang,
-            'tokens': [token.text for token in doc],
-            'lemmas': [token.lemma_ for token in doc],
-            'pos_tags': [(token.text, token.pos_) for token in doc],
-            'entities': self._extract_entities(doc),
-            'sentences': [str(sent) for sent in doc.sents],
-            #'ngrams': extract_ngrams(doc),
-            #'non_stop_words': remove_stopwords(doc),
-            'metadata': raw_document.get('metadata', {})
+        filtered_tokens = [
+            token.lemma_ for token in doc if not token.is_punct and not token.is_space and not token.is_stop
+        ]
+
+        # Initialize result dictionary
+        result = {
+            "url": raw_document.get('url'),
+            "doc_id": doc_id,
+            "total_length": len([token for token in doc if not token.is_space and not token.is_punct]),
+            "tokens": [],
+            "bigrams": [],
+            "trigrams": [],
+            "named_entities": [],
+            "parts_of_speech": []
         }
-        
-        return processed_data
+
+        # Count and sort tokens by frequency and alphabetically
+        token_freq = Counter(filtered_tokens)
+        sorted_tokens = sorted(
+            token_freq.items(),
+            key=lambda x: (-x[1], x[0])
+        )
+
+        # Add each token to the result, repeated for its occurrences with respective positions
+        for token, freq in sorted_tokens:
+            positions = [doc_token.idx for doc_token in doc if doc_token.lemma_ == token and not doc_token.is_punct and not doc_token.is_space and not doc_token.is_stop]
+            for pos in positions:
+                result["tokens"].append({
+                    "token": token,
+                    "lemma": token,
+                    "frequency": freq,
+                    "position": pos
+                })
+
+        # Generate and sort bigrams
+        bigram_freq = self._extract_ngrams(filtered_tokens, 2)
+        sorted_bigrams = sorted(
+            bigram_freq.items(),
+            key=lambda x: (-x[1], x[0])
+        )
+        result["bigrams"] = [
+            {"bigram": list(bigram), "frequency": freq}
+            for bigram, freq in sorted_bigrams
+        ]
+
+        # Generate and sort trigrams
+        trigram_freq = self._extract_ngrams(filtered_tokens, 3)
+        sorted_trigrams = sorted(
+            trigram_freq.items(),
+            key=lambda x: (-x[1], x[0])
+        )
+        result["trigrams"] = [
+            {"trigram": list(trigram), "frequency": freq}
+            for trigram, freq in sorted_trigrams
+        ]
+
+        # Extract named entities with their character positions
+        for ent in doc.ents:
+            result["named_entities"].append({
+                "entity": ent.text,
+                "type": ent.label_,
+                "position": [ent.start_char, ent.end_char]
+            })
+
+        # Add parts of speech for valid tokens
+        for token in doc:
+            if not token.is_punct and not token.is_space and not token.is_stop:
+                result["parts_of_speech"].append({
+                    "token": token.text,
+                    "pos_tag": token.pos_,
+                    "position": token.idx
+                })
+
+        return result
     
     def process_query(self, query: str) -> Dict[str, Any]:
         """
@@ -198,5 +271,3 @@ class TextTransformer:
                     "position": token.idx
                 })
         return pos_tags
-    
-    
